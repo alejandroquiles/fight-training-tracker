@@ -198,6 +198,9 @@ Actualmente la aplicación permite:
 
 ---
 
+## Licencia
+
+Este proyecto está bajo la licencia MIT.
 
 ## Autor
 
