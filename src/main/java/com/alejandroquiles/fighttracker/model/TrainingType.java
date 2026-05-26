@@ -7,6 +7,4 @@ public enum TrainingType {
 	SPARRING,
 	MOVILIDAD,
 	OTRO
-
-
 }
