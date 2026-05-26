@@ -20,6 +20,15 @@ public class TrainingManager {
 		return this.sessions;
 	}
 
+	public boolean removeSession(int index) {
+		if (index < 0 || index >= this.sessions.size()) {
+			return false;
+		}
+
+		this.sessions.remove(index);
+		return true;
+	}
+
 	public int getTotalSessions() {
 		return this.sessions.size();
 	}

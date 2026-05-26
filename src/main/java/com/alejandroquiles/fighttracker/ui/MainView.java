@@ -318,6 +318,18 @@ public class MainView {
 		showFeedback("Sesión añadida correctamente.", "#22C55E");
 	}
 
+	private void deleteTrainingSession(int index) {
+		boolean removed = this.trainingManager.removeSession(index);
+
+		if (removed) {
+			updateStats();
+			refreshSessionsList();
+			showFeedback("Sesión eliminada correctamente.", "#22C55E");
+		} else {
+			showFeedback("No se pudo eliminar la sesión.", "#F87171");
+		}
+	}
+
 	private void refreshSessionsList() {
 		this.sessionsListBox.getChildren().clear();
 
@@ -332,12 +344,13 @@ public class MainView {
 			return;
 		}
 
-		for (TrainingSession session : this.trainingManager.getSessions()) {
-			this.sessionsListBox.getChildren().add(createSessionCard(session));
+		for (int i = 0; i < this.trainingManager.getSessions().size(); i++) {
+			TrainingSession session = this.trainingManager.getSessions().get(i);
+			this.sessionsListBox.getChildren().add(createSessionCard(session, i));
 		}
 	}
 
-	private VBox createSessionCard(TrainingSession session) {
+	private VBox createSessionCard(TrainingSession session, int index) {
 		String typeColor = getTypeColor(session.getType());
 
 		Label typeLabel = new Label(session.getType().toString());
@@ -357,8 +370,25 @@ public class MainView {
 				"-fx-font-weight: bold;"
 		);
 
-		HBox headerBox = new HBox(8, typeLabel, titleLabel);
+		HBox leftHeaderBox = new HBox(8, typeLabel, titleLabel);
+		leftHeaderBox.setAlignment(Pos.CENTER_LEFT);
+
+		Button deleteButton = new Button("Eliminar");
+		deleteButton.setStyle(
+				"-fx-background-color: transparent;" +
+				"-fx-text-fill: #F87171;" +
+				"-fx-font-size: 12px;" +
+				"-fx-font-weight: bold;" +
+				"-fx-border-color: #7F1D1D;" +
+				"-fx-border-radius: 8;" +
+				"-fx-background-radius: 8;" +
+				"-fx-padding: 5 10;"
+		);
+		deleteButton.setOnAction(event -> deleteTrainingSession(index));
+
+		HBox headerBox = new HBox(12, leftHeaderBox, deleteButton);
 		headerBox.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(leftHeaderBox, Priority.ALWAYS);
 
 		Label detailsLabel = new Label(
 				session.getDurationMinutes() + " min · " +
