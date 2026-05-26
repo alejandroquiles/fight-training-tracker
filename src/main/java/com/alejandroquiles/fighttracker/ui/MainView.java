@@ -38,6 +38,7 @@ public class MainView {
 	private Label totalMinutesValueLabel;
 	private Label averageIntensityValueLabel;
 	private Label feedbackLabel;
+	private Label lastSessionValueLabel;
 
 	private VBox sessionsListBox;
 
@@ -71,12 +72,14 @@ public class MainView {
 		this.totalSessionsValueLabel = createStatValueLabel("0");
 		this.totalMinutesValueLabel = createStatValueLabel("0");
 		this.averageIntensityValueLabel = createStatValueLabel("0.0");
+		this.lastSessionValueLabel = createStatValueLabel("-");
 
 		HBox statsBox = new HBox(16);
 		statsBox.getChildren().addAll(
 				createStatCard("Sesiones", this.totalSessionsValueLabel),
 				createStatCard("Minutos", this.totalMinutesValueLabel),
-				createStatCard("Intensidad media", this.averageIntensityValueLabel)
+				createStatCard("Intensidad media", this.averageIntensityValueLabel),
+				createStatCard("Último", this.lastSessionValueLabel)
 		);
 
 		HBox contentBox = new HBox(20);
@@ -327,6 +330,14 @@ public class MainView {
 		this.totalSessionsValueLabel.setText(String.valueOf(this.trainingManager.getTotalSessions()));
 		this.totalMinutesValueLabel.setText(String.valueOf(this.trainingManager.getTotalMinutes()));
 		this.averageIntensityValueLabel.setText(String.format("%.1f", this.trainingManager.getAverageIntensity()));
+
+		TrainingSession lastSession = this.trainingManager.getLastSession();
+
+		if (lastSession == null) {
+			this.lastSessionValueLabel.setText("-");
+		} else {
+			this.lastSessionValueLabel.setText(lastSession.getType().toString());
+		}
 	}
 
 	private void showFeedback(String message, String color) {

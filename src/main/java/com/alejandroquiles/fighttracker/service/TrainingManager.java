@@ -47,4 +47,12 @@ public class TrainingManager {
 
 		return (double) totalIntensity / this.sessions.size();
 	}
+
+	public TrainingSession getLastSession() {
+		if (this.sessions.isEmpty()) {
+			return null;
+		}
+
+		return this.sessions.get(this.sessions.size() - 1);
+	}
 }
