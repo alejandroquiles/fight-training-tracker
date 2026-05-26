@@ -1,6 +1,7 @@
 package com.alejandroquiles.fighttracker.service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import com.alejandroquiles.fighttracker.model.TrainingSession;
 
@@ -14,6 +15,7 @@ public class TrainingManager {
 
 	public void addSession(TrainingSession session) {
 		this.sessions.add(session);
+		sortSessionsByDateDesc();
 	}
 
 	public ArrayList<TrainingSession> getSessions() {
@@ -62,6 +64,10 @@ public class TrainingManager {
 			return null;
 		}
 
-		return this.sessions.get(this.sessions.size() - 1);
+		return this.sessions.get(0);
+	}
+
+	private void sortSessionsByDateDesc() {
+		this.sessions.sort(Comparator.comparing(TrainingSession::getDate).reversed());
 	}
 }
