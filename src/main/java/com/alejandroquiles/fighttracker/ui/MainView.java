@@ -56,6 +56,7 @@ public class MainView {
 	private Label feedbackLabel;
 
 	private VBox sessionsListBox;
+	private ComboBox<String> filterComboBox;
 
 	public Parent createView() {
 		this.trainingManager = new TrainingManager();
@@ -234,6 +235,23 @@ public class MainView {
 				"-fx-font-size: 12px;"
 		);
 
+		VBox titleBox = new VBox(4, titleLabel, descriptionLabel);
+
+		this.filterComboBox = new ComboBox<>();
+		this.filterComboBox.getItems().add("Todos");
+
+		for (TrainingType type : TrainingType.values()) {
+			this.filterComboBox.getItems().add(type.toString());
+		}
+
+		this.filterComboBox.setValue("Todos");
+		this.filterComboBox.setPrefWidth(150);
+		this.filterComboBox.setOnAction(event -> refreshSessionsList());
+
+		HBox historyHeader = new HBox(16, titleBox, this.filterComboBox);
+		historyHeader.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(titleBox, Priority.ALWAYS);
+
 		this.sessionsListBox = new VBox(12);
 
 		Label emptyLabel = new Label("Todavía no hay entrenamientos registrados.");
@@ -251,7 +269,7 @@ public class MainView {
 				"-fx-background-color: transparent;"
 		);
 
-		VBox historyPanel = new VBox(12, titleLabel, descriptionLabel, scrollPane);
+		VBox historyPanel = new VBox(12, historyHeader, scrollPane);
 		historyPanel.setPadding(new Insets(22));
 		historyPanel.setPrefWidth(650);
 		historyPanel.setStyle(createPanelStyle());
@@ -344,10 +362,35 @@ public class MainView {
 			return;
 		}
 
+		boolean hasVisibleSessions = false;
+		String selectedFilter = this.filterComboBox.getValue();
+
 		for (int i = 0; i < this.trainingManager.getSessions().size(); i++) {
 			TrainingSession session = this.trainingManager.getSessions().get(i);
-			this.sessionsListBox.getChildren().add(createSessionCard(session, i));
+
+			if (shouldShowSession(session, selectedFilter)) {
+				this.sessionsListBox.getChildren().add(createSessionCard(session, i));
+				hasVisibleSessions = true;
+			}
 		}
+
+		if (!hasVisibleSessions) {
+			Label emptyFilterLabel = new Label("No hay entrenamientos para este filtro.");
+			emptyFilterLabel.setStyle(
+					"-fx-text-fill: #71717A;" +
+					"-fx-font-size: 13px;"
+			);
+
+			this.sessionsListBox.getChildren().add(emptyFilterLabel);
+		}
+	}
+
+	private boolean shouldShowSession(TrainingSession session, String selectedFilter) {
+		if (selectedFilter == null || selectedFilter.equals("Todos")) {
+			return true;
+		}
+
+		return session.getType().toString().equals(selectedFilter);
 	}
 
 	private VBox createSessionCard(TrainingSession session, int index) {
