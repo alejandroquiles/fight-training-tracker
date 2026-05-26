@@ -2,7 +2,9 @@ package com.alejandroquiles.fighttracker.ui;
 
 import java.time.LocalDate;
 
+import com.alejandroquiles.fighttracker.model.TrainingSession;
 import com.alejandroquiles.fighttracker.model.TrainingType;
+import com.alejandroquiles.fighttracker.service.TrainingManager;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,7 +30,16 @@ public class MainView {
 	private TextArea notesArea;
 	private Button addSessionButton;
 
+	private TrainingManager trainingManager;
+
+	private Label totalSessionsValueLabel;
+	private Label totalMinutesValueLabel;
+	private Label averageIntensityValueLabel;
+	private Label feedbackLabel;
+
 	public Parent createView() {
+		this.trainingManager = new TrainingManager();
+
 		BorderPane root = new BorderPane();
 		root.setPadding(new Insets(24));
 		root.setStyle("-fx-background-color: #121216;");
@@ -51,11 +62,15 @@ public class MainView {
 
 		VBox headerBox = new VBox(6, titleLabel, subtitleLabel);
 
+		this.totalSessionsValueLabel = createStatValueLabel("0");
+		this.totalMinutesValueLabel = createStatValueLabel("0");
+		this.averageIntensityValueLabel = createStatValueLabel("0.0");
+
 		HBox statsBox = new HBox(16);
 		statsBox.getChildren().addAll(
-				createStatCard("Sesiones", "0"),
-				createStatCard("Minutos", "0"),
-				createStatCard("Intensidad media", "0.0")
+				createStatCard("Sesiones", this.totalSessionsValueLabel),
+				createStatCard("Minutos", this.totalMinutesValueLabel),
+				createStatCard("Intensidad media", this.averageIntensityValueLabel)
 		);
 
 		HBox contentBox = new HBox(20);
@@ -99,9 +114,18 @@ public class MainView {
 
 		this.addSessionButton = new Button("Añadir sesión");
 
+		this.feedbackLabel = new Label(" ");
+		this.feedbackLabel.setStyle(
+				"-fx-text-fill: #A1A1AA;" +
+				"-fx-font-size: 12px;" +
+				"-fx-font-weight: bold;"
+		);
+
+		this.addSessionButton.setOnAction(event -> addTrainingSession());
+
 		VBox formPanel = new VBox(10);
 		formPanel.setPadding(new Insets(18));
-		formPanel.setPrefSize(350, 360);
+		formPanel.setPrefSize(350, 390);
 		formPanel.setStyle(
 				"-fx-background-color: #1E1E24;" +
 				"-fx-background-radius: 12;" +
@@ -117,10 +141,93 @@ public class MainView {
 				createFieldGroup("Duración", this.durationField),
 				createFieldGroup("Intensidad", this.intensityField),
 				createFieldGroup("Notas", this.notesArea),
-				this.addSessionButton
+				this.addSessionButton,
+				this.feedbackLabel
 		);
 
 		return formPanel;
+	}
+
+	private void addTrainingSession() {
+		String title = this.titleField.getText();
+		TrainingType type = this.typeComboBox.getValue();
+		LocalDate date = this.datePicker.getValue();
+		String durationText = this.durationField.getText();
+		String intensityText = this.intensityField.getText();
+		String notes = this.notesArea.getText();
+
+		if (title.trim().isEmpty()) {
+			showFeedback("El título no puede estar vacío.", "#F87171");
+			return;
+		}
+
+		if (date == null) {
+			showFeedback("La fecha no puede estar vacía.", "#F87171");
+			return;
+		}
+
+		int durationMinutes;
+		int intensity;
+
+		try {
+			durationMinutes = Integer.parseInt(durationText.trim());
+			intensity = Integer.parseInt(intensityText.trim());
+		} catch (NumberFormatException e) {
+			showFeedback("Duración e intensidad deben ser números.", "#F87171");
+			return;
+		}
+
+		if (durationMinutes <= 0) {
+			showFeedback("La duración debe ser mayor que 0.", "#F87171");
+			return;
+		}
+
+		if (intensity < 1 || intensity > 5) {
+			showFeedback("La intensidad debe estar entre 1 y 5.", "#F87171");
+			return;
+		}
+
+		TrainingSession session = new TrainingSession(
+				title.trim(),
+				type,
+				date,
+				durationMinutes,
+				intensity,
+				notes.trim()
+		);
+
+		this.trainingManager.addSession(session);
+
+		clearForm();
+		updateStats();
+
+		showFeedback("Sesión añadida correctamente.", "#22C55E");
+	}
+
+	private void clearForm() {
+		this.titleField.clear();
+		this.durationField.clear();
+		this.intensityField.clear();
+		this.notesArea.clear();
+
+		this.typeComboBox.setValue(TrainingType.TECNICA);
+		this.datePicker.setValue(LocalDate.now());
+		this.titleField.requestFocus();
+	}
+
+	private void updateStats() {
+		this.totalSessionsValueLabel.setText(String.valueOf(this.trainingManager.getTotalSessions()));
+		this.totalMinutesValueLabel.setText(String.valueOf(this.trainingManager.getTotalMinutes()));
+		this.averageIntensityValueLabel.setText(String.format("%.1f", this.trainingManager.getAverageIntensity()));
+	}
+
+	private void showFeedback(String message, String color) {
+		this.feedbackLabel.setText(message);
+		this.feedbackLabel.setStyle(
+				"-fx-text-fill: " + color + ";" +
+				"-fx-font-size: 12px;" +
+				"-fx-font-weight: bold;"
+		);
 	}
 
 	private VBox createFieldGroup(String labelText, Node field) {
@@ -135,18 +242,22 @@ public class MainView {
 		return group;
 	}
 
-	private VBox createStatCard(String title, String value) {
-		Label titleLabel = new Label(title);
-		titleLabel.setStyle(
-				"-fx-text-fill: #A1A1AA;" +
-				"-fx-font-size: 13px;"
-		);
-
+	private Label createStatValueLabel(String value) {
 		Label valueLabel = new Label(value);
 		valueLabel.setStyle(
 				"-fx-text-fill: #FFFFFF;" +
 				"-fx-font-size: 26px;" +
 				"-fx-font-weight: bold;"
+		);
+
+		return valueLabel;
+	}
+
+	private VBox createStatCard(String title, Label valueLabel) {
+		Label titleLabel = new Label(title);
+		titleLabel.setStyle(
+				"-fx-text-fill: #A1A1AA;" +
+				"-fx-font-size: 13px;"
 		);
 
 		VBox card = new VBox(8, titleLabel, valueLabel);
@@ -172,7 +283,7 @@ public class MainView {
 
 		VBox panel = new VBox(12, titleLabel);
 		panel.setPadding(new Insets(18));
-		panel.setPrefSize(350, 360);
+		panel.setPrefSize(350, 390);
 		panel.setStyle(
 				"-fx-background-color: #1E1E24;" +
 				"-fx-background-radius: 12;" +
