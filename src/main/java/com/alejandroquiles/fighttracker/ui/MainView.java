@@ -34,6 +34,8 @@ public class MainView {
 	private static final String ORANGE = "#F97316";
 	private static final String GREEN = "#22C55E";
 	private static final String BLUE = "#3B82F6";
+	private static final String PURPLE = "#A855F7";
+	private static final String GRAY = "#71717A";
 
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -336,12 +338,27 @@ public class MainView {
 	}
 
 	private VBox createSessionCard(TrainingSession session) {
-		Label titleLabel = new Label(session.getType() + " · " + session.getTitle());
+		String typeColor = getTypeColor(session.getType());
+
+		Label typeLabel = new Label(session.getType().toString());
+		typeLabel.setStyle(
+				"-fx-text-fill: white;" +
+				"-fx-background-color: " + typeColor + ";" +
+				"-fx-font-size: 11px;" +
+				"-fx-font-weight: bold;" +
+				"-fx-background-radius: 999;" +
+				"-fx-padding: 4 9;"
+		);
+
+		Label titleLabel = new Label(session.getTitle());
 		titleLabel.setStyle(
 				"-fx-text-fill: " + TEXT + ";" +
 				"-fx-font-size: 15px;" +
 				"-fx-font-weight: bold;"
 		);
+
+		HBox headerBox = new HBox(8, typeLabel, titleLabel);
+		headerBox.setAlignment(Pos.CENTER_LEFT);
 
 		Label detailsLabel = new Label(
 				session.getDurationMinutes() + " min · " +
@@ -356,7 +373,7 @@ public class MainView {
 		VBox card;
 
 		if (session.getNotes().isEmpty()) {
-			card = new VBox(5, titleLabel, detailsLabel);
+			card = new VBox(7, headerBox, detailsLabel);
 		} else {
 			Label notesLabel = new Label(session.getNotes());
 			notesLabel.setWrapText(true);
@@ -365,18 +382,37 @@ public class MainView {
 					"-fx-font-size: 12px;"
 			);
 
-			card = new VBox(5, titleLabel, detailsLabel, notesLabel);
+			card = new VBox(7, headerBox, detailsLabel, notesLabel);
 		}
 
 		card.setPadding(new Insets(14));
 		card.setStyle(
 				"-fx-background-color: " + PANEL_LIGHT + ";" +
 				"-fx-background-radius: 12;" +
-				"-fx-border-color: #3F3F46;" +
+				"-fx-border-color: " + typeColor + ";" +
+				"-fx-border-width: 0 0 0 4;" +
 				"-fx-border-radius: 12;"
 		);
 
 		return card;
+	}
+
+	private String getTypeColor(TrainingType type) {
+		switch (type) {
+			case FUERZA:
+				return RED;
+			case CARDIO:
+				return ORANGE;
+			case TECNICA:
+				return BLUE;
+			case SPARRING:
+				return PURPLE;
+			case MOVILIDAD:
+				return GREEN;
+			case OTRO:
+			default:
+				return GRAY;
+		}
 	}
 
 	private void clearForm() {
