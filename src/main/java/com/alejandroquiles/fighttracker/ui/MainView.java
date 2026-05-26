@@ -159,6 +159,12 @@ public class MainView {
 				"-fx-font-size: 12px;"
 		);
 
+		Label autosaveLabel = new Label("Los entrenamientos se guardan automáticamente en archivo local.");
+		autosaveLabel.setStyle(
+				"-fx-text-fill: #71717A;" +
+				"-fx-font-size: 11px;"
+		);
+
 		this.titleField = new TextField();
 		this.titleField.setPromptText("Ej: Striking y defensa");
 
@@ -220,6 +226,7 @@ public class MainView {
 		formPanel.getChildren().addAll(
 				titleLabel,
 				descriptionLabel,
+				autosaveLabel,
 				createFieldGroup("Título", this.titleField),
 				createFieldGroup("Tipo", this.typeComboBox),
 				createFieldGroup("Fecha", this.datePicker),
