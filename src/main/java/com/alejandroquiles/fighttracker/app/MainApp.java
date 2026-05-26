@@ -1,19 +1,20 @@
 package com.alejandroquiles.fighttracker.app;
 
+import com.alejandroquiles.fighttracker.ui.MainView;
+
 import javafx.application.Application;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
 
 	@Override
 	public void start(Stage stage) {
-		Label titleLabel = new Label("Fight Training Tracker");
+		MainView mainView = new MainView();
+		Parent root = mainView.createView();
 
-		StackPane root = new StackPane(titleLabel);
-		Scene scene = new Scene(root, 800, 500);
+		Scene scene = new Scene(root, 900, 600);
 
 		stage.setTitle("Fight Training Tracker");
 		stage.setScene(scene);
@@ -24,4 +25,3 @@ public class MainApp extends Application {
 		launch(args);
 	}
 }
-
