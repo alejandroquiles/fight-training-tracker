@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 import com.alejandroquiles.fighttracker.model.TrainingSession;
 import com.alejandroquiles.fighttracker.model.TrainingType;
+import com.alejandroquiles.fighttracker.repository.TrainingRepository;
 import com.alejandroquiles.fighttracker.service.TrainingManager;
 
 import javafx.geometry.Insets;
@@ -48,6 +49,7 @@ public class MainView {
 	private Button addSessionButton;
 
 	private TrainingManager trainingManager;
+	private TrainingRepository trainingRepository;
 
 	private Label totalSessionsValueLabel;
 	private Label totalMinutesValueLabel;
@@ -60,6 +62,9 @@ public class MainView {
 
 	public Parent createView() {
 		this.trainingManager = new TrainingManager();
+		this.trainingRepository = new TrainingRepository();
+
+		loadSavedSessions();
 
 		VBox mainContent = new VBox(26);
 		mainContent.setPadding(new Insets(32));
@@ -71,6 +76,9 @@ public class MainView {
 				createMainContent()
 		);
 
+		updateStats();
+		refreshSessionsList();
+
 		ScrollPane scrollPane = new ScrollPane(mainContent);
 		scrollPane.setFitToWidth(true);
 		scrollPane.setStyle(
@@ -79,6 +87,12 @@ public class MainView {
 		);
 
 		return scrollPane;
+	}
+
+	private void loadSavedSessions() {
+		for (TrainingSession session : this.trainingRepository.loadSessions()) {
+			this.trainingManager.addSession(session);
+		}
 	}
 
 	private VBox createHeader() {
@@ -95,8 +109,7 @@ public class MainView {
 				"-fx-font-size: 15px;"
 		);
 
-		VBox header = new VBox(6, titleLabel, subtitleLabel);
-		return header;
+		return new VBox(6, titleLabel, subtitleLabel);
 	}
 
 	private HBox createStatsBox() {
@@ -198,8 +211,6 @@ public class MainView {
 				createFieldGroup("Intensidad", this.intensityField)
 		);
 
-		VBox.setVgrow(this.notesArea, Priority.ALWAYS);
-
 		VBox formPanel = new VBox(12);
 		formPanel.setPadding(new Insets(22));
 		formPanel.setPrefWidth(420);
@@ -253,14 +264,6 @@ public class MainView {
 		HBox.setHgrow(titleBox, Priority.ALWAYS);
 
 		this.sessionsListBox = new VBox(12);
-
-		Label emptyLabel = new Label("Todavía no hay entrenamientos registrados.");
-		emptyLabel.setStyle(
-				"-fx-text-fill: #71717A;" +
-				"-fx-font-size: 13px;"
-		);
-
-		this.sessionsListBox.getChildren().add(emptyLabel);
 
 		ScrollPane scrollPane = new ScrollPane(this.sessionsListBox);
 		scrollPane.setFitToWidth(true);
@@ -328,18 +331,20 @@ public class MainView {
 		);
 
 		this.trainingManager.addSession(session);
+		this.trainingRepository.saveSessions(this.trainingManager.getSessions());
 
 		clearForm();
 		updateStats();
 		refreshSessionsList();
 
-		showFeedback("Sesión añadida correctamente.", "#22C55E");
+		showFeedback("Sesión añadida y guardada correctamente.", "#22C55E");
 	}
 
 	private void deleteTrainingSession(int index) {
 		boolean removed = this.trainingManager.removeSession(index);
 
 		if (removed) {
+			this.trainingRepository.saveSessions(this.trainingManager.getSessions());
 			updateStats();
 			refreshSessionsList();
 			showFeedback("Sesión eliminada correctamente.", "#22C55E");

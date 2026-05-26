@@ -4,3 +4,4 @@ target/
 .settings/
 bin/
 *.class
+training_sessions.csv
