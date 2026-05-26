@@ -1,6 +1,7 @@
 package com.alejandroquiles.fighttracker.ui;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import com.alejandroquiles.fighttracker.model.TrainingSession;
 import com.alejandroquiles.fighttracker.model.TrainingType;
@@ -14,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -36,6 +38,10 @@ public class MainView {
 	private Label totalMinutesValueLabel;
 	private Label averageIntensityValueLabel;
 	private Label feedbackLabel;
+
+	private VBox sessionsListBox;
+
+	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	public Parent createView() {
 		this.trainingManager = new TrainingManager();
@@ -76,7 +82,7 @@ public class MainView {
 		HBox contentBox = new HBox(20);
 		contentBox.getChildren().addAll(
 				createFormPanel(),
-				createPanel("Historial")
+				createHistoryPanel()
 		);
 
 		mainContent.getChildren().addAll(headerBox, statsBox, contentBox);
@@ -148,6 +154,44 @@ public class MainView {
 		return formPanel;
 	}
 
+	private VBox createHistoryPanel() {
+		Label titleLabel = new Label("Historial");
+		titleLabel.setStyle(
+				"-fx-text-fill: #FFFFFF;" +
+				"-fx-font-size: 18px;" +
+				"-fx-font-weight: bold;"
+		);
+
+		this.sessionsListBox = new VBox(10);
+
+		Label emptyLabel = new Label("Todavía no hay entrenamientos registrados.");
+		emptyLabel.setStyle(
+				"-fx-text-fill: #71717A;" +
+				"-fx-font-size: 13px;"
+		);
+
+		this.sessionsListBox.getChildren().add(emptyLabel);
+
+		ScrollPane scrollPane = new ScrollPane(this.sessionsListBox);
+		scrollPane.setFitToWidth(true);
+		scrollPane.setStyle(
+				"-fx-background: transparent;" +
+				"-fx-background-color: transparent;"
+		);
+
+		VBox historyPanel = new VBox(14, titleLabel, scrollPane);
+		historyPanel.setPadding(new Insets(18));
+		historyPanel.setPrefSize(470, 390);
+		historyPanel.setStyle(
+				"-fx-background-color: #1E1E24;" +
+				"-fx-background-radius: 12;" +
+				"-fx-border-color: #33333D;" +
+				"-fx-border-radius: 12;"
+		);
+
+		return historyPanel;
+	}
+
 	private void addTrainingSession() {
 		String title = this.titleField.getText();
 		TrainingType type = this.typeComboBox.getValue();
@@ -200,8 +244,72 @@ public class MainView {
 
 		clearForm();
 		updateStats();
+		refreshSessionsList();
 
 		showFeedback("Sesión añadida correctamente.", "#22C55E");
+	}
+
+	private void refreshSessionsList() {
+		this.sessionsListBox.getChildren().clear();
+
+		if (this.trainingManager.getSessions().isEmpty()) {
+			Label emptyLabel = new Label("Todavía no hay entrenamientos registrados.");
+			emptyLabel.setStyle(
+					"-fx-text-fill: #71717A;" +
+					"-fx-font-size: 13px;"
+			);
+
+			this.sessionsListBox.getChildren().add(emptyLabel);
+			return;
+		}
+
+		for (TrainingSession session : this.trainingManager.getSessions()) {
+			this.sessionsListBox.getChildren().add(createSessionCard(session));
+		}
+	}
+
+	private VBox createSessionCard(TrainingSession session) {
+		Label titleLabel = new Label(session.getType() + " · " + session.getTitle());
+		titleLabel.setStyle(
+				"-fx-text-fill: #FFFFFF;" +
+				"-fx-font-size: 14px;" +
+				"-fx-font-weight: bold;"
+		);
+
+		Label detailsLabel = new Label(
+				session.getDurationMinutes() + " min · " +
+				"Intensidad " + session.getIntensity() + "/5 · " +
+				session.getDate().format(DATE_FORMATTER)
+		);
+		detailsLabel.setStyle(
+				"-fx-text-fill: #A1A1AA;" +
+				"-fx-font-size: 12px;"
+		);
+
+		VBox card;
+
+		if (session.getNotes().isEmpty()) {
+			card = new VBox(4, titleLabel, detailsLabel);
+		} else {
+			Label notesLabel = new Label(session.getNotes());
+			notesLabel.setWrapText(true);
+			notesLabel.setStyle(
+					"-fx-text-fill: #D4D4D8;" +
+					"-fx-font-size: 12px;"
+			);
+
+			card = new VBox(4, titleLabel, detailsLabel, notesLabel);
+		}
+
+		card.setPadding(new Insets(12));
+		card.setStyle(
+				"-fx-background-color: #27272F;" +
+				"-fx-background-radius: 10;" +
+				"-fx-border-color: #3F3F46;" +
+				"-fx-border-radius: 10;"
+		);
+
+		return card;
 	}
 
 	private void clearForm() {
@@ -271,26 +379,5 @@ public class MainView {
 		);
 
 		return card;
-	}
-
-	private VBox createPanel(String title) {
-		Label titleLabel = new Label(title);
-		titleLabel.setStyle(
-				"-fx-text-fill: #FFFFFF;" +
-				"-fx-font-size: 18px;" +
-				"-fx-font-weight: bold;"
-		);
-
-		VBox panel = new VBox(12, titleLabel);
-		panel.setPadding(new Insets(18));
-		panel.setPrefSize(350, 390);
-		panel.setStyle(
-				"-fx-background-color: #1E1E24;" +
-				"-fx-background-radius: 12;" +
-				"-fx-border-color: #33333D;" +
-				"-fx-border-radius: 12;"
-		);
-
-		return panel;
 	}
 }
