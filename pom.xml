@@ -1,0 +1,35 @@
+<project>
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.alejandroquiles</groupId>
+	<artifactId>fight-training-tracker</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Fight Training Tracker</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.release>21</maven.compiler.release>
+		<javafx.version>21</javafx.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>${javafx.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.openjfx</groupId>
+				<artifactId>javafx-maven-plugin</artifactId>
+				<version>0.0.8</version>
+				<configuration>
+					<mainClass>com.alejandroquiles.fighttracker.app.MainApp</mainClass>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
