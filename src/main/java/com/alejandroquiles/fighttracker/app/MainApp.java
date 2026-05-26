@@ -14,12 +14,12 @@ public class MainApp extends Application {
 		MainView mainView = new MainView();
 		Parent root = mainView.createView();
 
-		Scene scene = new Scene(root, 1100, 720);
+		Scene scene = new Scene(root, 1180, 800);
 
 		stage.setTitle("Fight Training Tracker");
 		stage.setScene(scene);
-		stage.setMinWidth(1000);
-		stage.setMinHeight(650);
+		stage.setMinWidth(1050);
+		stage.setMinHeight(720);
 		stage.show();
 	}
 

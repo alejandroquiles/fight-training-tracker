@@ -18,11 +18,24 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class MainView {
+
+	private static final String BACKGROUND = "#0F1014";
+	private static final String PANEL = "#1A1B21";
+	private static final String PANEL_LIGHT = "#23252D";
+	private static final String BORDER = "#343640";
+	private static final String TEXT = "#F4F4F5";
+	private static final String MUTED = "#A1A1AA";
+	private static final String RED = "#EF4444";
+	private static final String ORANGE = "#F97316";
+	private static final String GREEN = "#22C55E";
+	private static final String BLUE = "#3B82F6";
+
+	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	private TextField titleField;
 	private ComboBox<TrainingType> typeComboBox;
@@ -37,69 +50,97 @@ public class MainView {
 	private Label totalSessionsValueLabel;
 	private Label totalMinutesValueLabel;
 	private Label averageIntensityValueLabel;
-	private Label feedbackLabel;
 	private Label lastSessionValueLabel;
+	private Label feedbackLabel;
 
 	private VBox sessionsListBox;
-
-	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	public Parent createView() {
 		this.trainingManager = new TrainingManager();
 
-		BorderPane root = new BorderPane();
-		root.setPadding(new Insets(24));
-		root.setStyle("-fx-background-color: #121216;");
+		VBox mainContent = new VBox(26);
+		mainContent.setPadding(new Insets(32));
+		mainContent.setStyle("-fx-background-color: " + BACKGROUND + ";");
 
-		VBox mainContent = new VBox(24);
-		mainContent.setAlignment(Pos.TOP_LEFT);
+		mainContent.getChildren().addAll(
+				createHeader(),
+				createStatsBox(),
+				createMainContent()
+		);
 
+		ScrollPane scrollPane = new ScrollPane(mainContent);
+		scrollPane.setFitToWidth(true);
+		scrollPane.setStyle(
+				"-fx-background: " + BACKGROUND + ";" +
+				"-fx-background-color: " + BACKGROUND + ";"
+		);
+
+		return scrollPane;
+	}
+
+	private VBox createHeader() {
 		Label titleLabel = new Label("Fight Training Tracker");
 		titleLabel.setStyle(
-				"-fx-text-fill: #F5F5F5;" +
-				"-fx-font-size: 32px;" +
+				"-fx-text-fill: " + TEXT + ";" +
+				"-fx-font-size: 36px;" +
 				"-fx-font-weight: bold;"
 		);
 
-		Label subtitleLabel = new Label("Registra tus entrenamientos y visualiza tu progreso.");
+		Label subtitleLabel = new Label("Registra tus entrenamientos, controla tu carga de trabajo y visualiza tu progreso.");
 		subtitleLabel.setStyle(
-				"-fx-text-fill: #A1A1AA;" +
+				"-fx-text-fill: " + MUTED + ";" +
 				"-fx-font-size: 15px;"
 		);
 
-		VBox headerBox = new VBox(6, titleLabel, subtitleLabel);
+		VBox header = new VBox(6, titleLabel, subtitleLabel);
+		return header;
+	}
 
+	private HBox createStatsBox() {
 		this.totalSessionsValueLabel = createStatValueLabel("0");
 		this.totalMinutesValueLabel = createStatValueLabel("0");
 		this.averageIntensityValueLabel = createStatValueLabel("0.0");
 		this.lastSessionValueLabel = createStatValueLabel("-");
 
 		HBox statsBox = new HBox(16);
+		statsBox.setAlignment(Pos.CENTER_LEFT);
+
 		statsBox.getChildren().addAll(
-				createStatCard("Sesiones", this.totalSessionsValueLabel),
-				createStatCard("Minutos", this.totalMinutesValueLabel),
-				createStatCard("Intensidad media", this.averageIntensityValueLabel),
-				createStatCard("Último", this.lastSessionValueLabel)
+				createStatCard("Sesiones", this.totalSessionsValueLabel, BLUE),
+				createStatCard("Minutos", this.totalMinutesValueLabel, ORANGE),
+				createStatCard("Intensidad media", this.averageIntensityValueLabel, GREEN),
+				createStatCard("Último entrenamiento", this.lastSessionValueLabel, RED)
 		);
 
-		HBox contentBox = new HBox(20);
-		contentBox.getChildren().addAll(
-				createFormPanel(),
-				createHistoryPanel()
-		);
+		return statsBox;
+	}
 
-		mainContent.getChildren().addAll(headerBox, statsBox, contentBox);
-		root.setCenter(mainContent);
+	private HBox createMainContent() {
+		HBox contentBox = new HBox(22);
+		contentBox.setAlignment(Pos.TOP_LEFT);
 
-		return root;
+		VBox formPanel = createFormPanel();
+		VBox historyPanel = createHistoryPanel();
+
+		HBox.setHgrow(historyPanel, Priority.ALWAYS);
+
+		contentBox.getChildren().addAll(formPanel, historyPanel);
+
+		return contentBox;
 	}
 
 	private VBox createFormPanel() {
 		Label titleLabel = new Label("Nuevo entrenamiento");
 		titleLabel.setStyle(
-				"-fx-text-fill: #FFFFFF;" +
-				"-fx-font-size: 18px;" +
+				"-fx-text-fill: " + TEXT + ";" +
+				"-fx-font-size: 20px;" +
 				"-fx-font-weight: bold;"
+		);
+
+		Label descriptionLabel = new Label("Añade una sesión a tu historial.");
+		descriptionLabel.setStyle(
+				"-fx-text-fill: " + MUTED + ";" +
+				"-fx-font-size: 12px;"
 		);
 
 		this.titleField = new TextField();
@@ -108,8 +149,10 @@ public class MainView {
 		this.typeComboBox = new ComboBox<>();
 		this.typeComboBox.getItems().addAll(TrainingType.values());
 		this.typeComboBox.setValue(TrainingType.TECNICA);
+		this.typeComboBox.setMaxWidth(Double.MAX_VALUE);
 
 		this.datePicker = new DatePicker(LocalDate.now());
+		this.datePicker.setMaxWidth(Double.MAX_VALUE);
 
 		this.durationField = new TextField();
 		this.durationField.setPromptText("Minutos");
@@ -119,36 +162,54 @@ public class MainView {
 
 		this.notesArea = new TextArea();
 		this.notesArea.setPromptText("Notas del entrenamiento...");
-		this.notesArea.setPrefRowCount(3);
+		this.notesArea.setPrefRowCount(4);
+
+		styleInput(this.titleField);
+		styleInput(this.durationField);
+		styleInput(this.intensityField);
+		styleTextArea(this.notesArea);
 
 		this.addSessionButton = new Button("Añadir sesión");
+		this.addSessionButton.setMaxWidth(Double.MAX_VALUE);
+		this.addSessionButton.setStyle(
+				"-fx-background-color: " + RED + ";" +
+				"-fx-text-fill: white;" +
+				"-fx-font-size: 14px;" +
+				"-fx-font-weight: bold;" +
+				"-fx-background-radius: 10;" +
+				"-fx-padding: 12 16;"
+		);
 
 		this.feedbackLabel = new Label(" ");
 		this.feedbackLabel.setStyle(
-				"-fx-text-fill: #A1A1AA;" +
+				"-fx-text-fill: " + MUTED + ";" +
 				"-fx-font-size: 12px;" +
 				"-fx-font-weight: bold;"
 		);
 
 		this.addSessionButton.setOnAction(event -> addTrainingSession());
 
-		VBox formPanel = new VBox(10);
-		formPanel.setPadding(new Insets(18));
-		formPanel.setPrefSize(350, 390);
-		formPanel.setStyle(
-				"-fx-background-color: #1E1E24;" +
-				"-fx-background-radius: 12;" +
-				"-fx-border-color: #33333D;" +
-				"-fx-border-radius: 12;"
+		HBox durationIntensityBox = new HBox(12);
+		durationIntensityBox.getChildren().addAll(
+				createFieldGroup("Duración", this.durationField),
+				createFieldGroup("Intensidad", this.intensityField)
 		);
+
+		VBox.setVgrow(this.notesArea, Priority.ALWAYS);
+
+		VBox formPanel = new VBox(12);
+		formPanel.setPadding(new Insets(22));
+		formPanel.setPrefWidth(420);
+		formPanel.setMinWidth(390);
+		formPanel.setStyle(createPanelStyle());
 
 		formPanel.getChildren().addAll(
 				titleLabel,
+				descriptionLabel,
 				createFieldGroup("Título", this.titleField),
 				createFieldGroup("Tipo", this.typeComboBox),
 				createFieldGroup("Fecha", this.datePicker),
-				createFieldGroup("Duración", this.durationField),
-				createFieldGroup("Intensidad", this.intensityField),
+				durationIntensityBox,
 				createFieldGroup("Notas", this.notesArea),
 				this.addSessionButton,
 				this.feedbackLabel
@@ -160,12 +221,18 @@ public class MainView {
 	private VBox createHistoryPanel() {
 		Label titleLabel = new Label("Historial");
 		titleLabel.setStyle(
-				"-fx-text-fill: #FFFFFF;" +
-				"-fx-font-size: 18px;" +
+				"-fx-text-fill: " + TEXT + ";" +
+				"-fx-font-size: 20px;" +
 				"-fx-font-weight: bold;"
 		);
 
-		this.sessionsListBox = new VBox(10);
+		Label descriptionLabel = new Label("Últimas sesiones registradas.");
+		descriptionLabel.setStyle(
+				"-fx-text-fill: " + MUTED + ";" +
+				"-fx-font-size: 12px;"
+		);
+
+		this.sessionsListBox = new VBox(12);
 
 		Label emptyLabel = new Label("Todavía no hay entrenamientos registrados.");
 		emptyLabel.setStyle(
@@ -182,15 +249,12 @@ public class MainView {
 				"-fx-background-color: transparent;"
 		);
 
-		VBox historyPanel = new VBox(14, titleLabel, scrollPane);
-		historyPanel.setPadding(new Insets(18));
-		historyPanel.setPrefSize(470, 390);
-		historyPanel.setStyle(
-				"-fx-background-color: #1E1E24;" +
-				"-fx-background-radius: 12;" +
-				"-fx-border-color: #33333D;" +
-				"-fx-border-radius: 12;"
-		);
+		VBox historyPanel = new VBox(12, titleLabel, descriptionLabel, scrollPane);
+		historyPanel.setPadding(new Insets(22));
+		historyPanel.setPrefWidth(650);
+		historyPanel.setStyle(createPanelStyle());
+
+		VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
 		return historyPanel;
 	}
@@ -274,8 +338,8 @@ public class MainView {
 	private VBox createSessionCard(TrainingSession session) {
 		Label titleLabel = new Label(session.getType() + " · " + session.getTitle());
 		titleLabel.setStyle(
-				"-fx-text-fill: #FFFFFF;" +
-				"-fx-font-size: 14px;" +
+				"-fx-text-fill: " + TEXT + ";" +
+				"-fx-font-size: 15px;" +
 				"-fx-font-weight: bold;"
 		);
 
@@ -285,14 +349,14 @@ public class MainView {
 				session.getDate().format(DATE_FORMATTER)
 		);
 		detailsLabel.setStyle(
-				"-fx-text-fill: #A1A1AA;" +
+				"-fx-text-fill: " + MUTED + ";" +
 				"-fx-font-size: 12px;"
 		);
 
 		VBox card;
 
 		if (session.getNotes().isEmpty()) {
-			card = new VBox(4, titleLabel, detailsLabel);
+			card = new VBox(5, titleLabel, detailsLabel);
 		} else {
 			Label notesLabel = new Label(session.getNotes());
 			notesLabel.setWrapText(true);
@@ -301,15 +365,15 @@ public class MainView {
 					"-fx-font-size: 12px;"
 			);
 
-			card = new VBox(4, titleLabel, detailsLabel, notesLabel);
+			card = new VBox(5, titleLabel, detailsLabel, notesLabel);
 		}
 
-		card.setPadding(new Insets(12));
+		card.setPadding(new Insets(14));
 		card.setStyle(
-				"-fx-background-color: #27272F;" +
-				"-fx-background-radius: 10;" +
+				"-fx-background-color: " + PANEL_LIGHT + ";" +
+				"-fx-background-radius: 12;" +
 				"-fx-border-color: #3F3F46;" +
-				"-fx-border-radius: 10;"
+				"-fx-border-radius: 12;"
 		);
 
 		return card;
@@ -352,43 +416,77 @@ public class MainView {
 	private VBox createFieldGroup(String labelText, Node field) {
 		Label label = new Label(labelText);
 		label.setStyle(
-				"-fx-text-fill: #A1A1AA;" +
+				"-fx-text-fill: " + MUTED + ";" +
 				"-fx-font-size: 12px;" +
 				"-fx-font-weight: bold;"
 		);
 
-		VBox group = new VBox(4, label, field);
+		VBox group = new VBox(5, label, field);
+		HBox.setHgrow(group, Priority.ALWAYS);
+
 		return group;
 	}
 
 	private Label createStatValueLabel(String value) {
 		Label valueLabel = new Label(value);
 		valueLabel.setStyle(
-				"-fx-text-fill: #FFFFFF;" +
-				"-fx-font-size: 26px;" +
+				"-fx-text-fill: " + TEXT + ";" +
+				"-fx-font-size: 28px;" +
 				"-fx-font-weight: bold;"
 		);
 
 		return valueLabel;
 	}
 
-	private VBox createStatCard(String title, Label valueLabel) {
+	private VBox createStatCard(String title, Label valueLabel, String accentColor) {
 		Label titleLabel = new Label(title);
 		titleLabel.setStyle(
-				"-fx-text-fill: #A1A1AA;" +
+				"-fx-text-fill: " + MUTED + ";" +
 				"-fx-font-size: 13px;"
 		);
 
 		VBox card = new VBox(8, titleLabel, valueLabel);
-		card.setPadding(new Insets(16));
-		card.setPrefWidth(180);
+		card.setPadding(new Insets(18));
+		card.setPrefWidth(250);
 		card.setStyle(
-				"-fx-background-color: #1E1E24;" +
-				"-fx-background-radius: 12;" +
-				"-fx-border-color: #33333D;" +
-				"-fx-border-radius: 12;"
+				"-fx-background-color: " + PANEL + ";" +
+				"-fx-background-radius: 14;" +
+				"-fx-border-color: " + accentColor + ";" +
+				"-fx-border-width: 0 0 0 4;" +
+				"-fx-border-radius: 14;"
 		);
 
 		return card;
+	}
+
+	private void styleInput(TextField field) {
+		field.setStyle(
+				"-fx-background-color: " + PANEL_LIGHT + ";" +
+				"-fx-text-fill: " + TEXT + ";" +
+				"-fx-prompt-text-fill: #71717A;" +
+				"-fx-background-radius: 8;" +
+				"-fx-border-color: " + BORDER + ";" +
+				"-fx-border-radius: 8;" +
+				"-fx-padding: 8 10;"
+		);
+	}
+
+	private void styleTextArea(TextArea area) {
+		area.setStyle(
+				"-fx-control-inner-background: " + PANEL_LIGHT + ";" +
+				"-fx-text-fill: " + TEXT + ";" +
+				"-fx-prompt-text-fill: #71717A;" +
+				"-fx-background-radius: 8;" +
+				"-fx-border-color: " + BORDER + ";" +
+				"-fx-border-radius: 8;" +
+				"-fx-padding: 8 10;"
+		);
+	}
+
+	private String createPanelStyle() {
+		return "-fx-background-color: " + PANEL + ";" +
+				"-fx-background-radius: 16;" +
+				"-fx-border-color: " + BORDER + ";" +
+				"-fx-border-radius: 16;";
 	}
 }
